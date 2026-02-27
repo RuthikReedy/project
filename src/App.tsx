@@ -12,6 +12,7 @@ import History from "@/pages/History";
 import Analytics from "@/pages/Analytics";
 import DiagnosisDetail from "@/pages/DiagnosisDetail";
 import NotFound from "./pages/NotFound";
+import Index from "./pages/Index";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -57,7 +58,8 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<AuthRoute />} />
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/" element={<Index />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/analyze" element={<ProtectedRoute><Analyze /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
