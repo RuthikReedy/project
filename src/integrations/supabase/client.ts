@@ -191,12 +191,12 @@ class LocalSupabaseFunctions {
 
     if (isDiseaseFound) {
       if (imaging_type === 'xray') {
-        diseaseName = `Pulmonary Tuberculosis (Inactive/Healed)`;
-        diseaseStage = 'Inactive/Healed (Suspected)';
-        analysisText = `The chest X-ray demonstrates subtle fibrotic scarring and linear opacities in the apex of the right lung. These findings are characteristic of healed or inactive post-primary pulmonary tuberculosis. The remainder of the lung fields, heart, and bony structures appear unremarkable.`;
-        findingsText = `This is a posteroanterior chest radiograph. There are fine linear and reticular opacities noted in the right lung apex, consistent with fibrotic scarring. There is no clear evidence of active consolidation, cavitation, significant pleural effusion, or pneumothorax. The cardiac silhouette is normal in size and contour. The mediastinum is not widened. The costophrenic angles are sharp bilaterally. The visualized bony thorax, including the ribs and clavicles, shows no evidence of acute fracture or destructive lesion.`;
-        symptomsText = "May be asymptomatic. Possible history of prior TB infection, chronic cough, or unexplained weight loss in the past.";
-        recommendationsText = `Clinical correlation is paramount. It is essential to obtain the patient's history regarding prior TB infection, exposure, or treatment. Comparison with previous chest X-rays, if available, is highly recommended to confirm the stability of these findings. If there is any clinical concern for active disease (e.g., new cough, fever, weight loss), further workup with sputum AFB (Acid-Fast Bacilli) smears, cultures, and a nucleic acid amplification test (NAAT) should be performed. Otherwise, these findings may simply represent old, healed disease requiring no further action.`;
+        diseaseName = `Subtle Hairline Fracture`;
+        diseaseStage = 'Acute (Undisplaced)';
+        analysisText = `The radiological examination of the ${regionLabel} reveals a subtle undisplaced hairline fracture.`;
+        findingsText = `Review of the radiograph reveals a faint, non-displaced radiolucent line, consistent with a subtle hairline fracture. The anatomical alignment is maintained with no significant displacement, step-off, or angulation. The adjacent bony structures appear intact, and no significant joint effusion or severe soft tissue swelling is definitively identified.`;
+        symptomsText = "Patient may report localized pain, tenderness upon palpation, mild to moderate swelling, and pain exacerbated by weight-bearing or movement.";
+        recommendationsText = `Conservative management with immobilization (such as a splint or cast) is typically recommended to promote healing and prevent displacement. Rest, elevation, and icing should be applied to reduce swelling. Orthopedic follow-up with repeat radiographs in 1-2 weeks is advised to monitor interval healing and alignment.`;
       } else if (imaging_type === 'ct') {
         diseaseName = `Mass Lesion / Nodularity in ${regionLabel}`;
         diseaseStage = 'Stage II';
