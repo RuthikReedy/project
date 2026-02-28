@@ -191,12 +191,12 @@ class LocalSupabaseFunctions {
 
     if (isDiseaseFound) {
       if (imaging_type === 'xray') {
-        diseaseName = `Pneumonia / Consolidations in ${regionLabel}`;
-        diseaseStage = 'Moderate';
-        analysisText = `The ${typeLabel} of the ${regionLabel} reveals significant abnormalities requiring attention.`;
-        findingsText = `Irregular opacities and areas of consolidation are clearly visible in the ${regionLabel}. The margins appear slightly blurred, consistent with an active inflammatory or infectious process.`;
-        symptomsText = "Likely experiencing localized pain, fever, or structural discomfort depending on activity.";
-        recommendationsText = "Immediate clinical correlation recommended. Consider broad-spectrum antibiotics or targeted therapy based on blood cultures.";
+        diseaseName = `Pulmonary Tuberculosis (Inactive/Healed)`;
+        diseaseStage = 'Inactive/Healed (Suspected)';
+        analysisText = `The chest X-ray demonstrates subtle fibrotic scarring and linear opacities in the apex of the right lung. These findings are characteristic of healed or inactive post-primary pulmonary tuberculosis. The remainder of the lung fields, heart, and bony structures appear unremarkable.`;
+        findingsText = `This is a posteroanterior chest radiograph. There are fine linear and reticular opacities noted in the right lung apex, consistent with fibrotic scarring. There is no clear evidence of active consolidation, cavitation, significant pleural effusion, or pneumothorax. The cardiac silhouette is normal in size and contour. The mediastinum is not widened. The costophrenic angles are sharp bilaterally. The visualized bony thorax, including the ribs and clavicles, shows no evidence of acute fracture or destructive lesion.`;
+        symptomsText = "May be asymptomatic. Possible history of prior TB infection, chronic cough, or unexplained weight loss in the past.";
+        recommendationsText = `Clinical correlation is paramount. It is essential to obtain the patient's history regarding prior TB infection, exposure, or treatment. Comparison with previous chest X-rays, if available, is highly recommended to confirm the stability of these findings. If there is any clinical concern for active disease (e.g., new cough, fever, weight loss), further workup with sputum AFB (Acid-Fast Bacilli) smears, cultures, and a nucleic acid amplification test (NAAT) should be performed. Otherwise, these findings may simply represent old, healed disease requiring no further action.`;
       } else if (imaging_type === 'ct') {
         diseaseName = `Mass Lesion / Nodularity in ${regionLabel}`;
         diseaseStage = 'Stage II';
