@@ -1,5 +1,6 @@
 // Local Mock for Supabase to allow the app to run without a backend
 import type { Database } from './types';
+import { GoogleGenAI } from '@google/genai';
 
 // Mock types
 type Session = any;
@@ -173,76 +174,86 @@ class LocalSupabaseStorage {
 
 class LocalSupabaseFunctions {
   async invoke(functionName: string, options: any) {
-    await delay(1500); // Simulate AI thinking
-
-    const { imaging_type, body_region } = options?.body || {};
-
-    const typeLabel = (imaging_type || 'scan').toUpperCase();
-    const regionLabel = (body_region || 'targeted area').toLowerCase();
-
-    const isDiseaseFound = Math.random() > 0.4;
-
-    let analysisText = "";
-    let findingsText = "";
-    let diseaseName = "";
-    let diseaseStage = "";
-    let symptomsText = "";
-    let recommendationsText = "";
-
-    if (isDiseaseFound) {
-      if (imaging_type === 'xray') {
-        diseaseName = `Subtle Hairline Fracture`;
-        diseaseStage = 'Acute (Undisplaced)';
-        analysisText = `The radiological examination of the ${regionLabel} reveals a subtle undisplaced hairline fracture.`;
-        findingsText = `Review of the radiograph reveals a faint, non-displaced radiolucent line, consistent with a subtle hairline fracture. The anatomical alignment is maintained with no significant displacement, step-off, or angulation. The adjacent bony structures appear intact, and no significant joint effusion or severe soft tissue swelling is definitively identified.`;
-        symptomsText = "Patient may report localized pain, tenderness upon palpation, mild to moderate swelling, and pain exacerbated by weight-bearing or movement.";
-        recommendationsText = `Conservative management with immobilization (such as a splint or cast) is typically recommended to promote healing and prevent displacement. Rest, elevation, and icing should be applied to reduce swelling. Orthopedic follow-up with repeat radiographs in 1-2 weeks is advised to monitor interval healing and alignment.`;
-      } else if (imaging_type === 'ct') {
-        diseaseName = `Mass Lesion / Nodularity in ${regionLabel}`;
-        diseaseStage = 'Stage II';
-        analysisText = `The structural ${typeLabel} analysis of the ${regionLabel} indicates a distinct anomalous formation.`;
-        findingsText = `High-resolution slices show a hyperdense nodule measuring approximately 2.4cm in the ${regionLabel}. Surrounding tissue exhibits mild edema but no gross invasion into adjacent structures.`;
-        symptomsText = "May present as chronic localized pressure, unexplained weight loss, or persistent localized discomfort.";
-        recommendationsText = "Schedule a follow-up PET scan and consider an image-guided biopsy to determine malignancy.";
-      } else if (imaging_type === 'mri') {
-        diseaseName = `Tissue Inflammation / Tears in ${regionLabel}`;
-        diseaseStage = 'Acute';
-        analysisText = `Detailed soft-tissue ${typeLabel} of the ${regionLabel} shows signs of acute tissue distress.`;
-        findingsText = `T2-weighted images demonstrate hyperintense signals throughout the ${regionLabel}, indicative of severe edema and possible micro-tearing of the connective fibers. No complete rupture is observed.`;
-        symptomsText = "Significant swelling, reduced range of motion, and sharp pain during specific movements.";
-        recommendationsText = "Strict rest, application of ice, and NSAIDs. Physical therapy consultation required in 2 weeks once acute inflammation subsides.";
-      } else {
-        diseaseName = `Dermatological Anomaly on ${regionLabel}`;
-        diseaseStage = 'Stage I';
-        analysisText = `Visual inspection of the ${regionLabel} indicates irregular pigmentation patterns.`;
-        findingsText = `The lesion on the ${regionLabel} presents with asymmetric borders, varied coloration (including dark brown and erythematous areas), and a diameter exceeding 6mm.`;
-        symptomsText = "Patient may report recent changes in size, shape, or color, accompanied by mild pruritus.";
-        recommendationsText = "Urgent consultation with a dermatologist for an excisional biopsy to rule out malignant melanoma.";
-      }
-    } else {
-      diseaseName = 'No Abnormalities Detected';
-      diseaseStage = '';
-      analysisText = `The ${typeLabel} of the ${regionLabel} appears entirely normal.`;
-      findingsText = `Thorough examination of the ${regionLabel} shows intact anatomical structures. Tissue density, boundaries, and morphology are all within normal physiological limits. No signs of masses, lesions, or active inflammation.`;
-      symptomsText = "N/A - Healthy profile.";
-      recommendationsText = "No immediate medical intervention is required based on this scan. Continue with routine health maintenance.";
+    if (functionName !== 'analyze-image') {
+      return { data: null, error: new Error(`Unknown function: ${functionName}`) };
     }
 
-    return {
-      data: {
-        disease_found: isDiseaseFound,
-        disease_name: diseaseName,
-        disease_stage: diseaseStage,
-        analysis: {
-          summary: analysisText,
-          findings: findingsText,
-          description: `Comprehensive AI-assisted radiological review of the ${typeLabel} imaging.`,
-          symptoms: symptomsText,
-          recommendations: recommendationsText
+    try {
+      const { image, imaging_type, body_region, patient_name } = options?.body || {};
+
+      if (!image) throw new Error("No image data provided for analysis");
+
+      // Attempt to load API key from env or window explicitly
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('GEMINI_API_KEY');
+
+      if (!apiKey) {
+        throw new Error("Missing Gemini API Key. Please add VITE_GEMINI_API_KEY to your .env file or GEMINI_API_KEY to localStorage.");
+      }
+
+      // Base64 cleanup
+      const base64Data = image.split(',')[1] || image;
+      const mimeTypeMatch = image.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/);
+      const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : 'image/jpeg';
+
+      const ai = new GoogleGenAI({ apiKey });
+
+      const prompt = `
+        You are an expert medical AI radiologist and diagnostician.
+        Analyze the attached medical image.
+        Patient Name: ${patient_name || 'Unknown'}
+        Imaging Type: ${imaging_type || 'Unknown'}
+        Target Body Region: ${body_region || 'Unknown'}
+
+        Carefully inspect the image for ANY anomalies, diseases, fractures, tumors, lesions, or irregularities.
+        
+        You MUST respond ONLY with a valid JSON object matching this exact structure, with no markdown formatting or extra text:
+        {
+          "disease_found": boolean,
+          "disease_name": "Name of the condition or 'No Abnormalities Detected'",
+          "disease_stage": "Severity or stage (e.g. 'Acute', 'Stage II', 'Healed', or empty string if healthy)",
+          "analysis": {
+            "summary": "1-2 sentence high-level summary of the entire scan.",
+            "findings": "A detailed paragraph explaining exactly what is seen in the image (opacities, fractures, alignment, density, etc).",
+            "description": "A very brief 1-sentence technical description",
+            "symptoms": "Expected symptoms a patient with these findings might have.",
+            "recommendations": "Medical recommendations, follow-ups, or treatments."
+          }
         }
-      },
-      error: null
-    };
+      `;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [
+          prompt,
+          {
+            inlineData: {
+              data: base64Data,
+              mimeType: mimeType
+            }
+          }
+        ],
+        config: {
+          temperature: 0.2, // Keep it precise for medical simulation
+        }
+      });
+
+      const responseText = response.text;
+      // Clean up markdown json block if Gemini includes it
+      const cleanedJson = responseText.replace(/^```json/g, '').replace(/```$/g, '').trim();
+      const parsedData = JSON.parse(cleanedJson);
+
+      return {
+        data: parsedData,
+        error: null
+      };
+
+    } catch (error: any) {
+      console.error("AI Analysis Failed:", error);
+      return {
+        data: null,
+        error: error
+      };
+    }
   }
 }
 
